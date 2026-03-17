@@ -57,8 +57,8 @@ if __name__ == '__main__':
 
     colorama.init()
 
-    # Initialize Rich Console and Live
-    live = Live(console=console, refresh_per_second=10, screen=False)
+    # Initialize Rich Console and Live (higher refresh = smoother display updates)
+    live = Live(console=console, refresh_per_second=30, screen=False)
     live.start()
 
     full_sentences = []
@@ -148,14 +148,15 @@ if __name__ == '__main__':
         if WRITE_TO_KEYBOARD_INTERVAL:
             pyautogui.write(f"{text} ", interval=WRITE_TO_KEYBOARD_INTERVAL)  # Adjust interval as needed
 
-    # Recorder configuration
+    # Recorder configuration (tuned for smoother real-time on CPU/Mac)
     recorder_config = {
         'spinner': False,
-        'model': 'large-v2', # or large-v2 or deepdml/faster-whisper-large-v3-turbo-ct2 or ...
+        'model': 'base.en',  # lighter than large-v2 for CPU; use small.en or base.en for smoothness
         'download_root': None, # default download root location. Ex. ~/.cache/huggingface/hub/ in Linux
         # 'input_device_index': 1,
         'realtime_model_type': 'tiny.en', # or small.en or distil-small.en or ...
         'language': 'en',
+        'device': 'cpu',  # explicit CPU on Mac avoids fallback overhead
         'silero_sensitivity': 0.05,
         'webrtc_sensitivity': 3,
         'post_speech_silence_duration': unknown_sentence_detection_pause,
@@ -165,10 +166,11 @@ if __name__ == '__main__':
         'realtime_processing_pause': 0.02,
         'on_realtime_transcription_update': text_detected,
         #'on_realtime_transcription_stabilized': text_detected,
-        'silero_deactivity_detection': True,
+        'silero_deactivity_detection': False,  # WebRTC VAD is lighter, reduces CPU load
         'early_transcription_on_silence': 0,
-        'beam_size': 5,
-        'beam_size_realtime': 3,
+        'beam_size': 3,  # lower = faster decoding
+        'beam_size_realtime': 2,  # lower = faster real-time updates
+        'start_callback_in_new_thread': True,  # prevents callback from blocking transcription
         # 'batch_size': 0,
         # 'realtime_batch_size': 0,        
         'no_log_file': True,
